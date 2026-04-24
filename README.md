@@ -2,3 +2,4 @@ This program is a rewritten version of [Black Hat Python, 2nd Edition](https://n
 ```python
 pip install pynput
 python -m pip install --upgrade --force-reinstall pywin32
+```
