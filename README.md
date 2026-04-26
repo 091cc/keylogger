@@ -16,6 +16,9 @@ This project is a modern, rewritten version of the example found in **[Black Hat
 * **Clipboard Monitoring**: Automatically captures content when `Ctrl+V` is pressed.
 * **Background Mode**: Supports `.pyw` execution for silent operation.
 
+## Note on Data Output
+* Upon execution, the program creates a `log.txt` file in the same directory. This file stores all captured keystrokes and window information in a structured format.
+
 ## Building Environment
 Ensure you have Python 3.x installed. Run the following commands to set up the dependencies:
 
