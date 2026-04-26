@@ -17,7 +17,7 @@ This project is a modern, rewritten version of the example found in **[Black Hat
 * **Background Mode**: Supports `.pyw` execution for silent operation.
 
 ## Building Environment
-Ensure you have Python 3.14+ installed. Run the following commands to set up the dependencies:
+Ensure you have Python 3.x installed. Run the following commands to set up the dependencies:
 
 ```bash
 pip install pynput pywin32
