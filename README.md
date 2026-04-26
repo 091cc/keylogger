@@ -25,3 +25,5 @@ Ensure you have Python 3.x installed. Run the following commands to set up the d
 ```bash
 pip install pynput pywin32
 python -m pywin32_postinstall -install
+```
+last update: April 2026 Version: KEYLOGGER v3.14
