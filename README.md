@@ -14,6 +14,7 @@ This project is a modern, rewritten version of the example found in **[Black Hat
 * **Real-time Keylogging**: Captures all keystrokes including special keys.
 * **Window Tracking**: Logs the Process ID (PID), executable name, and active window title.
 * **Clipboard Monitoring**: Automatically captures content when `Ctrl+V` is pressed.
+* **Dual Operation Modes**: Choose between Local-Only storage or Auto-Email transmission upon startup.
 * **Background Mode**: Supports `.pyw` execution for silent operation.
 * **Email Transmission**: Automatically exfiltrates `log.txt` via SMTP every 10 minutes.
 * **Fail-Safe Hygiene**: The local `log.txt` is only reset after a successful email delivery to prevent data loss.
@@ -24,7 +25,8 @@ This project is a modern, rewritten version of the example found in **[Black Hat
 Ensure you have Python 3.x installed. Run the following commands to set up the dependencies:
 
 ```bash
-pip install pynput pywin32
+# Recommended installation command
+python -m pip install pynput pywin32
 python -m pywin32_postinstall -install
 ```
 
@@ -41,12 +43,12 @@ To enable the automated report feature, you must use a **Google App Password**:
 3. Enter your **Receiver Email** and the **16-digit App Password**.
 4. The program will now run in the background, logging keystrokes and window activity.
 5. Check your inbox every 10 minutes for the `Keylogger Report`.
-6. **To Terminate**: Since the program runs in background mode, you must close it via **Windows Task Manager**  (Ctrl+Shift+Esc) by ending the `pythonw.exe` process.
+6. **To Terminate**: Since the program runs in background mode, you must close it via **Windows Task Manager**  (Ctrl+Shift+Esc) by ending the `python.exe` process.
 
 ## Data Structure
 The `log.txt` (and the corresponding email body) is structured as follows:
 * **Header**: Contains PID, Process Name, and Window Title (Unicode supported).
-* **Body**: Captured keystrokes and special keys.
+* **Body**: Captured keystrokes, including Numpad digits (0-9) and special keys.
 * **Clipboard**: Records content whenever `Ctrl+V` is detected.
 
 ## Sample Output Structure
