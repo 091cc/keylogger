@@ -24,6 +24,19 @@ This project is a modern, rewritten version of the example found in **[Black Hat
 ## Prerequisites
 Ensure you have Python 3.x installed. Run the following commands to set up the dependencies:
 
+**Option 1: Automated Setup (Recommended)**
+
+Run the included batch script as **Administrator** to install all dependencies and configure Windows system files:
+
+1. Right-click `install.bat`.
+2. Select **Run as Administrator** (Required for `pywin32` system registration).
+
+---
+
+**Option 2: Manual Installation**
+
+If you prefer not to use the batch script, run the following commands in an elevated Command Prompt:
+
 ```bash
 # Recommended installation command
 python -m pip install pynput pywin32
