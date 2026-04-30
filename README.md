@@ -28,8 +28,7 @@ Ensure you have Python 3.x installed. Run the following commands to set up the d
 
 Run the included batch script as **Administrator** to install all dependencies and configure Windows system files:
 
-1. Right-click `install.bat`.
-2. Select **Run as Administrator** (Required for `pywin32` system registration).
+double-click `install.bat`.
 
 ---
 
