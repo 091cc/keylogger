@@ -33,8 +33,8 @@ double-click `install.bat`.
 If you prefer not to use the batch script, run the following commands in an elevated Command Prompt:
 ```bash
 # Recommended installation command
-python -m pip install pynput pywin32
-python -m pywin32_postinstall -install
+py -m pip install pynput pywin32
+py -m pywin32_postinstall -install
 ```
 ## Setup for Email Transmission (Gmail)
 To enable the automated report feature, you must use a **Google App Password**:
