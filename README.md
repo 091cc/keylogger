@@ -5,7 +5,7 @@ The author is not responsible for any illegal use of this tool.
 This program is designed exclusively for **Windows** operating systems.
 ## Acknowledgements
 This project is a modern, rewritten version of the example found in **[Black Hat Python, 2nd Edition](https://nostarch.com/black-hat-python2E)**. 
-- **Major Updates**: Fully compatible with **Python 3.14**.
+- **Major Updates**: Fully compatible with **Python 3.14**(with basic compatibility for older and newer versions).
 - **Key Improvements**: Migrated from `pyWinhook` to `pynput` for event handling and implemented **Unicode (Wide) Windows API** via `ctypes` to support multi-language window titles (e.g., Traditional Chinese).
 ## Features
 * **Real-time Keylogging**: Captures all keystrokes including special keys.
