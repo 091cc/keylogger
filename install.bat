@@ -8,7 +8,7 @@ echo [2/3] Running pywin32 post-install configuration...
 py -m pywin32_postinstall -install
 
 echo [3/3]Installing required Python packages...
-py -m pip install selenium
+py -m pip install pygetwindow
 
 echo.
 echo ==========================================
