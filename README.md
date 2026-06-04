@@ -7,7 +7,7 @@
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge)
 
-**A modern, research-grade Windows keylogger built on Python 3.14**  
+**A modern, research-grade Windows keylogger built on Python 3.14 (python 8+ is also available)**  
 Unicode-aware · Clipboard monitoring · Screenshot capture · Dual-mode operation (Local / SMTP)
 
 </div>
@@ -25,7 +25,7 @@ Unicode-aware · Clipboard monitoring · Screenshot capture · Dual-mode operati
 
 ## 📖 Overview
 
-KEYLOGGER v3.14 is a modernized rewrite of the keylogger example from **[Black Hat Python, 2nd Edition](https://nostarch.com/black-hat-python2E)** (No Starch Press). It has been fully updated for Python 3.14 with significant architectural improvements:
+KEYLOGGER v3 is a modernized rewrite of the keylogger example from **[Black Hat Python, 2nd Edition](https://nostarch.com/black-hat-python2E)** (No Starch Press). It has been fully updated for Python 3 with significant architectural improvements:
 
 - Migrated from the deprecated `pyWinhook` to the actively maintained `pynput` library
 - Replaced ANSI Windows API calls with **Unicode (Wide) Win32 API** via `ctypes`, enabling proper support for multi-language window titles (e.g., Traditional Chinese, Japanese, Korean)
@@ -82,7 +82,7 @@ keylogger/
 | 2.x | ❌ Not supported | Incompatible entirely |
 
 > [!NOTE]
-> The project name `v3.14` reflects the development environment. The code itself uses no Python 3.14-exclusive syntax and runs on any **Python 3.8+** installation.
+> The project name `v3` reflects the development environment. The code itself uses no Python 3.14-exclusive syntax and runs on any **Python 3.8+** installation.
 
 ### Option 1 — Automated Setup *(Recommended)*
 
@@ -280,6 +280,6 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 
 <div align="center">
 
-*Last updated: June 2026 · KEYLOGGER v3.14*
+*Last updated: June 2026 · KEYLOGGER v3*
 
 </div>
