@@ -1,8 +1,8 @@
-# KEYLOGGER v3.14
+# KEYLOGGER v3
 
 <div align="center">
 
-![Python](https://img.shields.io/badge/Python-3.14%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.8%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge)
@@ -68,9 +68,21 @@ keylogger/
 ## ⚙️ Prerequisites
 
 - **OS**: Windows (7 / 10 / 11)
-- **Python**: 3.x (optimized for 3.14; backward compatible)
+- **Python**: 3.8+ recommended (developed and tested on 3.14; not compatible with Python 2 or 3.5 and below)
 - **Core dependencies**: `pynput`, `pywin32`
 - **Screenshotter variant extra dependencies**: `pyautogui`, `pygetwindow`
+
+### Python Version Compatibility
+
+| Python Version | Status | Notes |
+|---|---|---|
+| 3.8 – 3.14 | ✅ Fully supported | Recommended range |
+| 3.6 – 3.7 | ⚠️ Partial | May work, but requires pinning older `pynput` version |
+| 3.5 and below | ❌ Not supported | f-string syntax causes `SyntaxError` |
+| 2.x | ❌ Not supported | Incompatible entirely |
+
+> [!NOTE]
+> The project name `v3.14` reflects the development environment. The code itself uses no Python 3.14-exclusive syntax and runs on any **Python 3.8+** installation.
 
 ### Option 1 — Automated Setup *(Recommended)*
 
