@@ -1,4 +1,4 @@
-# 🔑 KEYLOGGER v3.14
+# KEYLOGGER v3.14
 
 <div align="center">
 
@@ -8,7 +8,7 @@
 ![Status](https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge)
 
 **A modern, research-grade Windows keylogger built on Python 3.14**  
-Unicode-aware · Clipboard monitoring · Dual-mode operation (Local / SMTP)
+Unicode-aware · Clipboard monitoring · Screenshot capture · Dual-mode operation (Local / SMTP)
 
 </div>
 
@@ -38,15 +38,16 @@ KEYLOGGER v3.14 is a modernized rewrite of the keylogger example from **[Black H
 | Feature | Description |
 |---|---|
 | ⌨️ **Real-time Keylogging** | Captures all keystrokes, including Numpad (0–9) and special/function keys |
-| 🪟 **Window Tracking** | Logs PID, executable name, and active window title on focus change |
+| 🪟 **Window Tracking** | Logs active window title on focus change (via `pygetwindow`; Unicode supported) |
 | 📋 **Clipboard Monitoring** | Automatically captures clipboard content on `Ctrl+V` |
 | 🔀 **Dual Operation Modes** | Choose between **Local-Only** (file storage) or **SMTP** (auto email) at startup |
 | 👻 **Background Mode** | `.pyw` extension enables silent execution with no console window |
-| 📧 **Email Transmission** | Auto-delivers `log.txt` via SMTP every **10 minutes** |
+| 📧 **Email Transmission** | Auto-delivers `log.txt` + screenshots via SMTP every **5 minutes** |
 | 🛡️ **Fail-Safe Logging** | Local log is only cleared after a **confirmed successful** email delivery |
 | 🔒 **Encrypted Transit** | Uses `STARTTLS` (Port 587) — credentials and logs are always encrypted |
 | 🔑 **Secure Credentials** | GUI-based App Password input — no secrets hardcoded in source |
-| 📸 **Screenshot Support** | Optional variant with periodic screenshot capture *(see separate file)* |
+| 📸 **Screenshot on Enter** | `(with_screenshotter)` variant captures a screenshot on every `[Enter]` key press, with a **5-second cooldown** to prevent flooding |
+| 🗑️ **Auto Screenshot Cleanup** | Screenshots older than **7 days** are automatically deleted to manage disk space |
 
 ---
 
@@ -68,20 +69,27 @@ keylogger/
 
 - **OS**: Windows (7 / 10 / 11)
 - **Python**: 3.x (optimized for 3.14; backward compatible)
-- **Dependencies**: `pynput`, `pywin32`
+- **Core dependencies**: `pynput`, `pywin32`
+- **Screenshotter variant extra dependencies**: `pyautogui`, `pygetwindow`
 
 ### Option 1 — Automated Setup *(Recommended)*
 
-Double-click `install.bat` (or `install(with_screenshotter).bat` for the screenshot variant).  
+Double-click `install.bat` for the core keylogger, or `install(with_screenshotter).bat` for the screenshot variant.  
 The script will install all dependencies and run the required `pywin32` post-install step automatically.
 
 ### Option 2 — Manual Setup
 
-Run the following in an **elevated** Command Prompt:
+**Core keylogger:**
 
 ```batch
 py -m pip install pynput pywin32
 py -m pywin32_postinstall -install
+```
+
+**Screenshotter variant (additional packages):**
+
+```batch
+py -m pip install pyautogui pygetwindow
 ```
 
 ---
@@ -111,6 +119,43 @@ To use the SMTP auto-email feature with Gmail:
 4. In SMTP mode, check your inbox every ~10 minutes for the `Keylogger Report`
 
 **To terminate:** Open **Task Manager** (`Ctrl+Shift+Esc`) → find `pythonw.exe` → End Task
+
+---
+
+## 📸 Screenshotter Variant
+
+`keylogger(with_screenshotter).pyw` extends the core keylogger with automatic screenshot capabilities.
+
+### How It Works
+
+| Behaviour | Detail |
+|---|---|
+| **Trigger** | A screenshot is captured on every `[Enter]` key press |
+| **Cooldown** | 5-second cooldown between captures to prevent screenshot flooding |
+| **Skipped capture** | If cooldown is active, a `[ Screenshot skipped: wait Xs ]` note is written to the log |
+| **Save location** | Same directory as the script, named `screenshot_YYYYMMDD_HHMMSS.png` |
+| **Email attachment** | Screenshots taken within the last 5 minutes are attached to each SMTP report |
+| **Auto cleanup** | Screenshots older than **7 days** are automatically deleted on each report cycle |
+
+### Additional Dependency
+
+```batch
+py -m pip install pyautogui pygetwindow
+```
+
+Or simply run `install(with_screenshotter).bat`.
+
+### Log Example (with screenshots)
+
+```
+[ Window: Google Chrome - 搜尋 ]
+python keylogger tutorial[ENTER]
+[ Screenshot saved: C:\...\screenshot_20260604_143022.png ]
+
+[ Screenshot skipped: wait 3s ]
+another search[ENTER]
+[ Screenshot saved: C:\...\screenshot_20260604_143028.png ]
+```
 
 ---
 
@@ -198,6 +243,10 @@ How to use Python [Enter]
 - **Event Backend**: `pynput` replaces the unmaintained `pyWinhook`, providing better compatibility with modern Python versions
 - **SMTP Security**: All email transmissions use `STARTTLS` on port 587 — plaintext transmission is never used
 - **No Hardcoded Secrets**: Credentials are entered at runtime via GUI and never written to disk
+- **Screenshot Engine**: Uses `pyautogui.screenshot()` — captures the full screen; saved as PNG with timestamp filename
+- **Window Detection (screenshotter)**: Uses `pygetwindow.getActiveWindow()` instead of raw `ctypes` for cleaner cross-version compatibility in the extended variant
+- **SMTP Attachments**: Screenshots are sent as `application/octet-stream` MIME attachments and deleted locally after successful delivery
+- **Cooldown Logic**: Screenshot cooldown is tracked via `datetime.timedelta` — skipped captures are logged with remaining wait time
 
 ---
 
@@ -206,6 +255,8 @@ How to use Python [Enter]
 - [Black Hat Python, 2nd Edition — No Starch Press](https://nostarch.com/black-hat-python2E)
 - [pynput Documentation](https://pynput.readthedocs.io/)
 - [pywin32 on PyPI](https://pypi.org/project/pywin32/)
+- [pyautogui Documentation](https://pyautogui.readthedocs.io/)
+- [pygetwindow on PyPI](https://pypi.org/project/PyGetWindow/)
 
 ---
 
@@ -216,6 +267,7 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 ---
 
 <div align="center">
+
 *Last updated: June 2026 · KEYLOGGER v3.14*
 
 </div>
