@@ -87,7 +87,6 @@ KEYLOGGER v3 is a modernized rewrite of the keylogger example from **[Black Hat 
 ## 📁 Project Structure
 
 ```text
-keylogger/
 ├── keylogger.pyw           # Core script: Includes GUI, auto-dep install, keystroke/clipboard logging, and email reports (F9 hotkey)
 ├── keylogger_config.json   # Auto-generated: Stores log paths and email settings (Do not commit to version control)
 ├── LICENSE                 # Project open-source license
