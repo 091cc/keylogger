@@ -23,7 +23,7 @@ Unicode-aware · Clipboard monitoring · Dual-mode operation (Local / SMTP) · C
 
 ---
 
-## 📖 Table of Contents
+## Table of Contents
 
 - [Overview](#overview)
 - [Features](#features)
@@ -43,7 +43,7 @@ Unicode-aware · Clipboard monitoring · Dual-mode operation (Local / SMTP) · C
 
 ---
 
-## 📖 Overview
+## Overview
 
 KEYLOGGER v3 is a modernized rewrite of the keylogger example from **[Black Hat Python, 2nd Edition](https://nostarch.com/black-hat-python2E)** (No Starch Press). It has been fully updated for Python 3 with significant architectural improvements:
 
@@ -55,7 +55,7 @@ KEYLOGGER v3 is a modernized rewrite of the keylogger example from **[Black Hat 
 
 ---
 
-## ✨ Features
+## Features
 
 | Feature | Description |
 |---|---|
@@ -75,7 +75,7 @@ KEYLOGGER v3 is a modernized rewrite of the keylogger example from **[Black Hat 
 
 ---
 
-## 💻 Tech Stack
+## Tech Stack
 
 - **Primary Language**: Python
 - **Operating System**: Windows
@@ -84,7 +84,7 @@ KEYLOGGER v3 is a modernized rewrite of the keylogger example from **[Black Hat 
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 ├── keylogger.pyw           # Core script: Includes GUI, auto-dep install, keystroke/clipboard logging, and email reports (F9 hotkey)
@@ -96,7 +96,7 @@ KEYLOGGER v3 is a modernized rewrite of the keylogger example from **[Black Hat 
 
 ---
 
-## ⚙️ Prerequisites
+## Prerequisites
 
 - **OS**: Windows (7 / 10 / 11)
 - **Python**: 3.8+ recommended (developed and tested on 3.14; not compatible with Python 2 or 3.5 and below)
