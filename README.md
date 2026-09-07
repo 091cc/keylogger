@@ -25,21 +25,21 @@ Unicode-aware · Clipboard monitoring · Dual-mode operation (Local / SMTP) · C
 
 ## 📖 Table of Contents
 
-- [Overview](#-overview)
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [Prerequisites](#-prerequisites)
-- [Installation](#-installation)
-- [Gmail App Password Setup](#-gmail-app-password-setup)
-- [Usage](#-usage)
-- [Global Hotkey (F9)](#-global-hotkey-f9)
-- [Log Path Configuration](#-log-path-configuration)
-- [Auto-Start on Windows Boot](#-auto-start-on-windows-boot)
-- [Log Format](#-log-format)
-- [Technical Notes](#-technical-notes)
-- [Reference](#-reference)
-- [License](#-license)
+- [Overview](#overview)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Gmail App Password Setup](#gmail-app-password-setup)
+- [Usage](#usage)
+- [Global Hotkey (F9)](#global-hotkey-f9)
+- [Log Path Configuration](#log-path-configuration)
+- [Auto-Start on Windows Boot](#auto-start-on-windows-boot)
+- [Log Format](#log-format)
+- [Technical Notes](#technical-notes)
+- [Reference](#reference)
+- [License](#license)
 
 ---
 
