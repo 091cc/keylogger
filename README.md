@@ -8,7 +8,7 @@
 ![Status](https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge)
 
 **A modern, research-grade Windows keylogger built on Python 3.8+.**  
-Unicode-aware · Clipboard monitoring · Screenshot capture · Dual-mode operation (Local / SMTP)
+Unicode-aware · Clipboard monitoring · Dual-mode operation (Local / SMTP) · Configurable log path · Global hotkey (F9)
 
 </div>
 
@@ -33,7 +33,8 @@ Unicode-aware · Clipboard monitoring · Screenshot capture · Dual-mode operati
 - [Installation](#-installation)
 - [Gmail App Password Setup](#-gmail-app-password-setup)
 - [Usage](#-usage)
-- [Screenshotter Variant](#-screenshotter-variant)
+- [Global Hotkey (F9)](#-global-hotkey-f9)
+- [Log Path Configuration](#-log-path-configuration)
 - [Auto-Start on Windows Boot](#-auto-start-on-windows-boot)
 - [Log Format](#-log-format)
 - [Technical Notes](#-technical-notes)
@@ -49,6 +50,8 @@ KEYLOGGER v3 is a modernized rewrite of the keylogger example from **[Black Hat 
 - Migrated from the deprecated `pyWinhook` to the actively maintained `pynput` library
 - Replaced ANSI Windows API calls with **Unicode (Wide) Win32 API** via `ctypes`, enabling proper support for multi-language window titles (e.g., Traditional Chinese, Japanese, Korean)
 - Introduced dual-mode runtime configuration via GUI dialog — no hardcoded credentials
+- Added **configurable log storage path** with persistent settings
+- Implemented **global F9 hotkey** to hide/show the control window
 
 ---
 
@@ -56,17 +59,19 @@ KEYLOGGER v3 is a modernized rewrite of the keylogger example from **[Black Hat 
 
 | Feature | Description |
 |---|---|
-| ⌨️ **Real-time Keylogging** | Captures all keystrokes, including Numpad (0–9) and special/function keys |
-| 🪟 **Window Tracking** | Logs active window title on focus change (via `pygetwindow`; Unicode supported) |
+| ⌨️ **Real-time Keylogging** | Captures all keystrokes, including Numpad (0–9) and special/function keys with proper formatting `[SPACE]`, `[WIN]`, `[R_SHIFT]` etc. |
+| 🪟 **Window Tracking** | Logs PID, executable name, and active window title on focus change (full Unicode support via `ctypes`) |
 | 📋 **Clipboard Monitoring** | Automatically captures clipboard content on `Ctrl+V` |
 | 🔀 **Dual Operation Modes** | Choose between **Local-Only** (file storage) or **SMTP** (auto email) at startup |
 | 👻 **Background Mode** | `.pyw` extension enables silent execution with no console window |
-| 📧 **Email Transmission** | Auto-delivers `log.txt` + screenshots via SMTP every **5 minutes** |
+| 📧 **Email Transmission** | Auto-delivers `log.txt` via SMTP every **10 minutes** |
 | 🛡️ **Fail-Safe Logging** | Local log is only cleared after a **confirmed successful** email delivery |
 | 🔒 **Encrypted Transit** | Uses `STARTTLS` (Port 587) — credentials and logs are always encrypted |
 | 🔑 **Secure Credentials** | GUI-based App Password input — no secrets hardcoded in source |
-| 📸 **Screenshot on Enter** | `(with_screenshotter)` variant captures a screenshot on every `[Enter]` key press, with a **5-second cooldown** to prevent flooding |
-| 🗑️ **Auto Screenshot Cleanup** | Screenshots older than **7 days** are automatically deleted to manage disk space |
+| 📂 **Configurable Log Path** | Browse and select any storage location for `log.txt`; settings persist across sessions |
+| ⌨️ **Global Hotkey (F9)** | Hide or show the control window at any time, even when minimized or out of focus |
+| 🔄 **Real-time Path Update** | Change log path while logger is running — updates immediately |
+| 💾 **Persistent Settings** | Log path and email configuration are saved locally and restored on next launch |
 
 ---
 
@@ -75,24 +80,20 @@ KEYLOGGER v3 is a modernized rewrite of the keylogger example from **[Black Hat 
 - **Primary Language**: Python
 - **Operating System**: Windows
 - **Core Libraries**: `pynput`, `pywin32`
-- **Screenshot Dependencies**: `pyautogui`, `pygetwindow`
+- **GUI**: `tkinter` (built-in)
 
 ---
 
 ## 📁 Project Structure
 
-```
+```text
 keylogger/
-├── keylogger                          
-    ├── keylogger.pyw                  # Standard keylogger (temp ui+keystrokes + clipboard + email)
-    ├── install.bat                    # Automated dependency installer
-├── keylogger_no_ui                    
-    ├── keylogger(no_ui).pyw           # Simple keylogger (auto install must imports + easy to fill blanks + clipboard + email)
-├── keylogger_with_subprocess          
-    ├── keylogger(with_subprocess).pyw # Core keylogger (auto install must imports + temp ui + subprocess + easy to fill blanks + clipboard + email)
-├── LICENSE
-└── README.md
+├── keylogger.pyw           # Core script: Includes GUI, auto-dep install, keystroke/clipboard logging, and email reports (F9 hotkey)
+├── keylogger_config.json   # Auto-generated: Stores log paths and email settings (Do not commit to version control)
+├── LICENSE                 # Project open-source license
+└── README.md               # Project documentation
 ```
+
 
 ---
 
@@ -100,8 +101,7 @@ keylogger/
 
 - **OS**: Windows (7 / 10 / 11)
 - **Python**: 3.8+ recommended (developed and tested on 3.14; not compatible with Python 2 or 3.5 and below)
-- **Core dependencies**: `pynput`, `pywin32`
-- **Screenshotter variant extra dependencies**: `pyautogui`, `pygetwindow`
+- **Core dependencies**: `pynput`, `pywin32` (auto-installed on first run)
 
 ### Python Version Compatibility
 
@@ -113,16 +113,19 @@ keylogger/
 | 2.x | ❌ Not supported | Incompatible entirely |
 
 > [!NOTE]
-> The project name `v3` reflects the development environment. The code itself uses no Python 3.14-exclusive syntax and runs on any **Python 3.8+** installation.
+> The code uses no Python 3.14-exclusive syntax and runs on any **Python 3.8+** installation. Dependencies are automatically installed on first execution.
 
 ---
 
-## 🛠️ Installation
+## Installation
 
-### Option 1 — Automated Setup *(Recommended)*
+### Option 1 — One-Click Setup *(Recommended)*
 
-Double-click `install.bat` for the core keylogger, or `install(with_screenshotter).bat` for the screenshot variant.  
-The script will install all dependencies and run the required `pywin32` post-install step automatically.
+Simply double-click `keylogger.pyw`. The program will:
+1. Display a progress bar showing installation status
+2. Auto-install all required dependencies (`pynput`, `pywin32`)
+3. Auto-run `pywin32_postinstall`
+4. Launch the configuration dialog
 
 ### Option 2 — Manual Setup
 
@@ -133,196 +136,116 @@ py -m pip install pynput pywin32
 py -m pywin32_postinstall -install
 ```
 
-**Screenshotter variant (additional packages):**
-
-```batch
-py -m pip install pyautogui pygetwindow
-```
-
 ---
 
-## 📧 Gmail App Password Setup
+## Gmail App Password Setup
 
 To use the SMTP auto-email feature with Gmail:
-
-1. Enable **2-Step Verification** on your Google Account  
-   → [myaccount.google.com/security](https://myaccount.google.com/security)
+1. Enable **2-Step Verification** on your Google Account → [myaccount.google.com/security](myaccount.google.com/security)
 2. Navigate to **Security → App Passwords**
 3. Generate a new **16-digit App Password** (select "Mail" and your device)
 4. Use this password when the program prompts at startup
+
+---
 
 > [!TIP]
 > Use a dedicated **"burner" Gmail account** for testing to isolate risk and keep your personal account clean.
 
 ---
 
-## 🚀 Usage
+## Usage
 
-1. Run `keylogger.pyw` — a configuration dialog will appear
-2. Select your operation mode:
-   - **Local Only** — logs saved to `log.txt` in the script directory
-   - **SMTP Mode** — enter your receiver email and 16-digit App Password
-3. The program runs silently in the background
-4. In SMTP mode, check your inbox every ~10 minutes for the `Keylogger Report`
+1. Double-click `keylogger.pyw` — a progress window appears (first run only)
+2. A configuration dialog will appear:
+   - **"Would you like to send logs via Email?"**
+       - Select Yes → Enter sender email, 16-digit App Password, and receiver email
+       - Select No → Logs are saved locally only (auto-reset disabled)
+3. The main control window appears with:
+    - Current status (Stopped / Running)
+    - Log file path (configurable)
+    - **Start Logger** / **Stop Logger** buttons
+    - F9 hotkey indicator
+4. Click **Start Logger** to begin recording
+5. In SMTP mode, check your inbox every ~10 minutes for the `Keylogger Report`
 
-**To terminate:** Open **Task Manager** (`Ctrl+Shift+Esc`) → find `pythonw.exe` → End Task
-
----
-
-## 📸 Screenshotter Variant
-
-`keylogger(with_screenshotter).pyw` extends the core keylogger with automatic screenshot capabilities.
-
-### How It Works
-
-| Behaviour | Detail |
-|---|---|
-| **Trigger** | A screenshot is captured on every `[Enter]` key press |
-| **Cooldown** | 5-second cooldown between captures to prevent screenshot flooding |
-| **Skipped capture** | If cooldown is active, a `[ Screenshot skipped: wait Xs ]` note is written to the log |
-| **Save location** | Same directory as the script, named `screenshot_YYYYMMDD_HHMMSS.png` |
-| **Email attachment** | Screenshots taken within the last 5 minutes are attached to each SMTP report |
-| **Auto cleanup** | Screenshots older than **7 days** are automatically deleted on each report cycle |
-
-### Additional Dependency
-
-```batch
-py -m pip install pyautogui pygetwindow
-```
-
-Or simply run `install(with_screenshotter).bat`.
-
-### Log Example (with screenshots)
-
-```
-[ Window: Google Chrome - 搜尋 ]
-python keylogger tutorial[ENTER]
-[ Screenshot saved: C:\...\screenshot_20260604_143022.png ]
-
-[ Screenshot skipped: wait 3s ]
-another search[ENTER]
-[ Screenshot saved: C:\...\screenshot_20260604_143028.png ]
-```
+**To terminate**: Click **Exit** on the control window, or press `Ctrl+Shift+Esc` → find `pythonw.exe` → End Task
 
 ---
 
-## 🔁 Auto-Start on Windows Boot
+## Global Hotkey (F9)
 
-### Method 1 — Startup Folder *(Simplest)*
+The control window can be hidden or shown at any time using the **F9** key:
+| Action | Behavior |
+| :--- | :--- |
+| **Press F9** | **Toggles window visibility** (Hide / Show). |
+| **When Hidden** | The program **continues running silently in the background**. |
+| **When Shown** | Pressing **F9** again brings the window back to the foreground. |
+| **Global** | Works universally, **even when the window is not in focus**. |
 
-```
-Win + R → shell:startup
-```
-
-Place `keylogger.pyw` (or a shortcut) in this folder.
-
-> ✅ No admin rights required  
-> ⚠️ Only runs after user login; current user only
-
----
-
-### Method 2 — Task Scheduler *(Recommended)*
-
-1. Open **Task Scheduler** → **Create Basic Task**
-2. Trigger: `When the computer starts` or `When I log on`
-3. Action: `Start a program`
-4. Program: `pythonw.exe`
-5. Arguments: `C:\full\path\to\keylogger.pyw`
-
-> ✅ Supports delayed start (useful for network initialization)  
-> ✅ Can run without any user logged in
+> [!TIP]
+> Use F9 to keep the control window out of sight while the keylogger continues running.
 
 ---
 
-### Method 3 — Registry Run Key
+## Log Path Configuration
+The program allows you to customize where `log.txt` is saved:
+| Feature | Description |
+| :--- | :--- |
+| **Browse Button** | **Click to select any folder and filename for your log. |
+| **Default Location** | `Desktop\keylog.txt` (persists across sessions) |
+| **Path Display** | Shows current log path in the control window |
+| **Auto-save** | Settings are saved to `keylogger_config.json` |
+| **Real-time Update** | Change path while logger is running — updates immediately |
 
-```
-Win + R → regedit
-```
-
-Navigate to:
-```
-HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run
-```
-
-Add a new **String Value**:
-- Name: `KeyloggerService` (or any identifier)
-- Value: `"C:\Windows\py.exe" "C:\path\to\keylogger.pyw"`
-
-> ✅ Lightweight and persistent  
-> ⚠️ Modify the registry with care
+### Why this matters:
+- When running from a USB drive, you can save logs to the computer's hard drive
+- Prevents log loss if the USB drive is removed
+- Organize logs across multiple computers or projects
+- No need to search for `log.txt` — set your preferred location
 
 ---
 
-### Method Comparison
-
-| Method | Requires Login | Admin Required | Best For |
-|---|---|---|---|
-| Startup Folder | ✅ Yes | ❌ No | Quick testing |
-| Task Scheduler | Optional | ✅ Yes | Production / stable use |
-| Registry | ✅ Yes | ❌ No | Lightweight persistent setup |
-
----
-
-## 📄 Log Format
-
+## Log Format
 Each session log (`log.txt`) follows this structure:
-
 ```
 [ PID: 1234 - notepad.exe - 無標題 - 記事本 ]
-Hello world! [Enter]
+Hello world!
+[ENTER]
 
 [ PID: 5678 - chrome.exe - Google 搜尋 ]
-How to use Python [Enter]
+How to use Python
+[ENTER]
 
 [PASTE] - https://github.com/091cc/keylogger
-```
 
+[ PID: 1234 - notepad.exe - 無標題 - 記事本 ]
+[SPACE][BACKSPACE][TAB][WIN][R_SHIFT]
+```
 - **Header block**: PID · Executable name · Window title (full Unicode support)
 - **Keystroke body**: Raw input including special keys in `[brackets]`
+- **Special key formatting**: `[SPACE]`, `[WIN]`, `[R_SHIFT]`, `[CTRL]`, `[ALT]`, `[ENTER]`, `[BACKSPACE]`, `[TAB]`, `[ESC]`, `[UP]`, `[DOWN]`, `[LEFT]`, `[RIGHT]`, etc.
 - **Clipboard entries**: Prefixed with `[PASTE]` on every `Ctrl+V` event
 
 ---
 
-## 🔧 Technical Notes
-
+## Technical Notes
 - **Unicode Support**: Uses `GetWindowTextW` and `GetForegroundWindow` via `ctypes` to correctly capture CJK and other non-ASCII window titles
 - **Event Backend**: `pynput` replaces the unmaintained `pyWinhook`, providing better compatibility with modern Python versions
 - **SMTP Security**: All email transmissions use `STARTTLS` on port 587 — plaintext transmission is never used
 - **No Hardcoded Secrets**: Credentials are entered at runtime via GUI and never written to disk
-- **Screenshot Engine**: Uses `pyautogui.screenshot()` — captures the full screen; saved as PNG with timestamp filename
-- **Window Detection (screenshotter)**: Uses `pygetwindow.getActiveWindow()` instead of raw `ctypes` for cleaner cross-version compatibility in the extended variant
-- **SMTP Attachments**: Screenshots are sent as `application/octet-stream` MIME attachments and deleted locally after successful delivery
-- **Cooldown Logic**: Screenshot cooldown is tracked via `datetime.timedelta` — skipped captures are logged with remaining wait time
+- **Global Hotkey**: F9 uses `pynput` global listener — works even when the window is hidden or out of focus
+- **Auto-install**: Dependencies are installed on first run with a progress bar, eliminating manual setup
+- **Persistent Settings**: `keylogger_config.json` stores log path and settings for convenience
+- **Real-time Log Path Update**: Changing the log path while the logger is running updates immediately — no restart required
 
 ---
 
-## 📚 Reference
-
+##  Reference
 - [Black Hat Python, 2nd Edition — No Starch Press](https://nostarch.com/black-hat-python2E)
 - [pynput Documentation](https://pynput.readthedocs.io/)
 - [pywin32 on PyPI](https://pypi.org/project/pywin32/)
-- [pyautogui Documentation](https://pyautogui.readthedocs.io/)
-- [pygetwindow on PyPI](https://pypi.org/project/PyGetWindow/)
 
 ---
 
-## 📜 License
-
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
-
----
-
-<div align="center">
-
-*Last updated: June 2026 · KEYLOGGER v3*
-
-</div>
-
----
-
-**<p align="center">Generated by [ReadmeCodeGen](https://www.readmecodegen.com/)</p>**
-
-
----
-**<p align="center">Generated by [ReadmeCodeGen](https://www.readmecodegen.com/)</p>**
+## License
+This project is licensed under the **MIT License** — see the [LICENSE] file for details.
