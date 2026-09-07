@@ -7,7 +7,7 @@
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge)
 
-**A modern, research-grade Windows keylogger built on Python 3.8+.**  
+**A modern, research-grade Windows keylogger built on Python 3.8+**  
 Unicode-aware · Clipboard monitoring · Dual-mode operation (Local / SMTP) · Configurable log path · Global hotkey (F9)
 
 </div>
